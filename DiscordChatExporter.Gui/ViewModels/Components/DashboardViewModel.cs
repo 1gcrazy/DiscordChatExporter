@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -66,6 +67,7 @@ public partial class DashboardViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(PullGuildsCommand))]
     [NotifyCanExecuteChangedFor(nameof(PullChannelsCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportEntireServerCommand))]
     public partial bool IsBusy { get; set; }
 
     public LocalizationManager LocalizationManager { get; }
@@ -84,9 +86,11 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(PullChannelsCommand))]
     [NotifyCanExecuteChangedFor(nameof(ExportCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportEntireServerCommand))]
     public partial Guild? SelectedGuild { get; set; }
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExportEntireServerCommand))]
     public partial IReadOnlyList<ChannelConnection>? AvailableChannels { get; set; }
 
     public ObservableCollection<ChannelConnection> SelectedChannels { get; } = [];
@@ -223,24 +227,88 @@ public partial class DashboardViewModel : ViewModelBase
         !IsBusy && _discord is not null && SelectedGuild is not null && SelectedChannels.Any();
 
     [RelayCommand(CanExecute = nameof(CanExport))]
-    private async Task ExportAsync()
+    private async Task ExportAsync() =>
+        await RunExportAsync(
+            SelectedChannels.Select(c => c.Channel).ToArray(),
+            organizeIntoFolders: false
+        );
+
+    private bool CanExportEntireServer() =>
+        !IsBusy
+        && _discord is not null
+        && SelectedGuild is not null
+        && AvailableChannels is { Count: > 0 };
+
+    [RelayCommand(CanExecute = nameof(CanExportEntireServer))]
+    private async Task ExportEntireServerAsync()
+    {
+        if (AvailableChannels is null)
+            return;
+
+        // Flatten the channel tree into every exportable (non-category) channel
+        var channels = new List<Channel>();
+
+        void Collect(IReadOnlyList<ChannelConnection> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                if (!node.Channel.IsCategory)
+                    channels.Add(node.Channel);
+
+                Collect(node.Children);
+            }
+        }
+
+        Collect(AvailableChannels);
+
+        if (channels.Count == 0)
+        {
+            _snackbarManager.Notify("This server has no exportable channels");
+            return;
+        }
+
+        await RunExportAsync(channels, organizeIntoFolders: true);
+    }
+
+    private async Task RunExportAsync(
+        IReadOnlyList<Channel> channels,
+        bool organizeIntoFolders
+    )
     {
         IsBusy = true;
 
         try
         {
-            if (_discord is null || SelectedGuild is null || !SelectedChannels.Any())
+            if (_discord is null || SelectedGuild is null || channels.Count == 0)
                 return;
 
-            var dialog = _viewModelManager.GetExportSetupViewModel(
-                SelectedGuild,
-                SelectedChannels.Select(c => c.Channel).ToArray()
-            );
+            var dialog = _viewModelManager.GetExportSetupViewModel(SelectedGuild, channels);
 
             if (await _dialogManager.ShowDialogAsync(dialog) != true)
                 return;
 
             var exporter = new ChannelExporter(_discord);
+
+            // When exporting a whole server, expand the chosen directory into a
+            // Server/Category/Channel folder tree so the structure is preserved on disk.
+            // (A plain directory would otherwise dump every channel into one flat folder.)
+            var outputPath = dialog.OutputPath!;
+            if (organizeIntoFolders && !outputPath.Contains('%'))
+            {
+                var extension = dialog.SelectedFormat.GetFileExtension();
+                outputPath =
+                    outputPath.TrimEnd(
+                        Path.DirectorySeparatorChar,
+                        Path.AltDirectorySeparatorChar
+                    )
+                    + Path.DirectorySeparatorChar
+                    + "%G"
+                    + Path.DirectorySeparatorChar
+                    + "%T"
+                    + Path.DirectorySeparatorChar
+                    + "%C [%c]."
+                    + extension;
+            }
 
             var channelProgressPairs = dialog
                 .Channels!.Select(c => new { Channel = c, Progress = _progressMuxer.CreateInput() })
@@ -264,7 +332,7 @@ public partial class DashboardViewModel : ViewModelBase
                         var request = new ExportRequest(
                             dialog.Guild!,
                             channel,
-                            dialog.OutputPath!,
+                            outputPath,
                             dialog.AssetsDirPath,
                             dialog.SelectedFormat,
                             dialog.After?.Pipe(Snowflake.FromDate),

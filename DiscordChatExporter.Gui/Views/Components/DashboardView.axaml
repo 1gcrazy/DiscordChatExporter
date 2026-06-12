@@ -284,6 +284,26 @@
                 </ScrollViewer>
             </Panel>
 
+            <!--  Export entire server button (preserves Server/Category/Channel folder structure)  -->
+            <Button
+                Width="56"
+                Height="56"
+                Margin="32,24,104,24"
+                Padding="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Background="{DynamicResource MaterialSecondaryMidBrush}"
+                Command="{Binding ExportEntireServerCommand}"
+                Foreground="{DynamicResource MaterialSecondaryMidForegroundBrush}"
+                IsVisible="{Binding $self.IsEffectivelyEnabled}"
+                Theme="{DynamicResource MaterialIconButton}"
+                ToolTip.Tip="Export entire server (preserves folder structure)">
+                <materialIcons:MaterialIcon
+                    Width="32"
+                    Height="32"
+                    Kind="FolderDownload" />
+            </Button>
+
             <!--  Export button  -->
             <Button
                 Width="56"
