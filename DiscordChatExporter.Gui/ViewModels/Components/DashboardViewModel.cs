@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -106,6 +107,60 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private async Task ShowSettingsAsync() =>
         await _dialogManager.ShowDialogAsync(_viewModelManager.GetSettingsViewModel());
+
+    // Scan a folder of existing exports and build categorized link lists
+    // (file-host / video / webpage) plus a JDownloader crawljob, by running the
+    // bundled Extract-DiscordLinks.ps1 helper.
+    [RelayCommand]
+    private async Task ExtractLinksAsync()
+    {
+        var folder = await _dialogManager.PromptDirectoryPathAsync();
+        if (string.IsNullOrWhiteSpace(folder))
+            return;
+
+        if (!OperatingSystem.IsWindows())
+        {
+            _snackbarManager.Notify(
+                "Link extraction runs on Windows. Run backup/scripts/Extract-DiscordLinks.ps1 manually."
+            );
+            return;
+        }
+
+        var script = Path.Combine(AppContext.BaseDirectory, "Tools", "Extract-DiscordLinks.ps1");
+        if (!File.Exists(script))
+        {
+            _snackbarManager.Notify("Could not find the link extractor (Tools/Extract-DiscordLinks.ps1).");
+            return;
+        }
+
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                UseShellExecute = true,
+            };
+            startInfo.ArgumentList.Add("-NoProfile");
+            startInfo.ArgumentList.Add("-ExecutionPolicy");
+            startInfo.ArgumentList.Add("Bypass");
+            startInfo.ArgumentList.Add("-NoExit");
+            startInfo.ArgumentList.Add("-File");
+            startInfo.ArgumentList.Add(script);
+            startInfo.ArgumentList.Add("-Root");
+            startInfo.ArgumentList.Add(folder);
+            startInfo.ArgumentList.Add("-Crawljob");
+
+            Process.Start(startInfo);
+
+            _snackbarManager.Notify(
+                "Extracting links - see the PowerShell window. Lists are written to the folder's _LINKS subfolder."
+            );
+        }
+        catch (Exception ex)
+        {
+            _snackbarManager.Notify(ex.Message.TrimEnd('.'));
+        }
+    }
 
     private bool CanPullGuilds() => !IsBusy && !string.IsNullOrWhiteSpace(Token);
 

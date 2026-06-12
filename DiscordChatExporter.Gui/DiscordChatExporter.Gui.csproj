@@ -25,6 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Bundle the link-extraction helper so the in-app "Extract links" button can run it -->
+    <None Include="../backup/scripts/Extract-DiscordLinks.ps1" Link="Tools/Extract-DiscordLinks.ps1" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AsyncImageLoader.Avalonia" />
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />

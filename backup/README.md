@@ -171,6 +171,38 @@ Environment overrides: `DCE_TOKEN`, `DCE_CLI`, `DCE_CONFIG`, `DCE_OUTPUT_ROOT`,
 
 ---
 
+## Bonus: extract & download the links inside exports
+
+`scripts/Extract-DiscordLinks.ps1` scans a folder of exports and pulls every external
+link into categorized lists, ready for bulk downloading:
+
+```powershell
+.\scripts\Extract-DiscordLinks.ps1 -Root "C:\path\to\exported server" -Crawljob -IncludeJson
+```
+
+Writes to `<Root>\_LINKS\`:
+
+| File | What |
+|------|------|
+| `MASTER-filehost-links.txt` | Mega, Google Drive, GoFile, OneDrive, Dropbox, MediaFire, WeTransfer… (the real files) |
+| `MASTER-video-links.txt` | YouTube / video links |
+| `MASTER-discord-attachments.txt` | Files uploaded straight to Discord (newer ones use signed URLs and may be expired) |
+| `MASTER-webpage-links.txt` | Everything else (reference) |
+| `MASTER-ALL-links.txt` | Combined |
+| `SUMMARY.txt` | Counts + per-host breakdown |
+| `filehosts.crawljob` | Drop into JDownloader's `folderwatch` folder to auto-queue the file hosts |
+| `download-videos.cmd` | Runs `yt-dlp` over the video list |
+
+**Downloading:**
+- **File hosts → [JDownloader 2](https://jdownloader.org)** — paste `MASTER-filehost-links.txt`
+  (auto-grabbed from clipboard) or drop `filehosts.crawljob` into its `folderwatch` folder.
+  JDownloader surfaces Mega/Drive captchas, manages the free-Mega ~5 GB/day quota, and resumes.
+- **Videos → [yt-dlp](https://github.com/yt-dlp/yt-dlp)** — run `download-videos.cmd`, or:
+  `yt-dlp -a "<_LINKS>\MASTER-video-links.txt" -o "...\%(title)s.%(ext)s" -i`
+- **WeTransfer (`we.tl`) links expire after 7 days** — old ones are already dead.
+
+In the GUI, the **link icon** in the top bar runs this for any folder you pick.
+
 ## Notes & caveats
 
 - **Terms of Service.** Automating exports with a **user token** is against Discord's ToS

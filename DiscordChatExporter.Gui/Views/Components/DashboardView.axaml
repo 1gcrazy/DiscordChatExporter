@@ -54,21 +54,41 @@
                     </TextBox>
                 </materialStyles:Card>
 
-                <!--  Settings button  -->
-                <Button
+                <!--  Action buttons  -->
+                <StackPanel
                     Grid.Column="1"
-                    Margin="8,0,0,0"
-                    Padding="8"
                     VerticalAlignment="Center"
-                    Command="{Binding ShowSettingsCommand}"
-                    Foreground="{DynamicResource MaterialDarkForegroundBrush}"
-                    Theme="{DynamicResource MaterialFlatButton}"
-                    ToolTip.Tip="{Binding LocalizationManager.SettingsTooltip}">
-                    <materialIcons:MaterialIcon
-                        Width="24"
-                        Height="24"
-                        Kind="Settings" />
-                </Button>
+                    Orientation="Horizontal">
+                    <!--  Extract links from an export folder  -->
+                    <Button
+                        Margin="8,0,0,0"
+                        Padding="8"
+                        VerticalAlignment="Center"
+                        Command="{Binding ExtractLinksCommand}"
+                        Foreground="{DynamicResource MaterialDarkForegroundBrush}"
+                        Theme="{DynamicResource MaterialFlatButton}"
+                        ToolTip.Tip="Extract &amp; prepare downloads from a folder of existing exports">
+                        <materialIcons:MaterialIcon
+                            Width="24"
+                            Height="24"
+                            Kind="LinkVariant" />
+                    </Button>
+
+                    <!--  Settings button  -->
+                    <Button
+                        Margin="8,0,0,0"
+                        Padding="8"
+                        VerticalAlignment="Center"
+                        Command="{Binding ShowSettingsCommand}"
+                        Foreground="{DynamicResource MaterialDarkForegroundBrush}"
+                        Theme="{DynamicResource MaterialFlatButton}"
+                        ToolTip.Tip="{Binding LocalizationManager.SettingsTooltip}">
+                        <materialIcons:MaterialIcon
+                            Width="24"
+                            Height="24"
+                            Kind="Settings" />
+                    </Button>
+                </StackPanel>
             </Grid>
 
             <!--  Progress  -->
