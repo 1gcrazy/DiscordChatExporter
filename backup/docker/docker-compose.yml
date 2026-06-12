@@ -1,0 +1,27 @@
+# Self-hosted, scheduled Discord server backup.
+#
+#   1. cp ../config.example.json ../config.json   and edit it (guild IDs etc.)
+#   2. cp .env.example .env                        and set DCE_TOKEN + schedule
+#   3. docker compose up -d --build
+#
+# Backups land in ${BACKUP_DATA_DIR}/exports on the host (default ./dce-data/exports).
+services:
+  dce-backup:
+    build:
+      # Context is the repo root so the CLI can be built from your fork's source.
+      context: ../..
+      dockerfile: backup/docker/Dockerfile
+    image: dce-backup:local
+    container_name: dce-backup
+    restart: unless-stopped
+    environment:
+      DCE_TOKEN: "${DCE_TOKEN:?set DCE_TOKEN in backup/docker/.env}"
+      # Cron schedule (UTC unless you change TZ). See README for hourly/daily/weekly/monthly.
+      CRON_SCHEDULE: "${CRON_SCHEDULE:-0 * * * *}"
+      RUN_ON_START: "${RUN_ON_START:-true}"
+      TZ: "${TZ:-UTC}"
+    volumes:
+      - ../config.json:/data/config.json:ro
+      - ${BACKUP_DATA_DIR:-./dce-data}/exports:/data/exports
+      - ${BACKUP_DATA_DIR:-./dce-data}/state:/data/state
+      - ${BACKUP_DATA_DIR:-./dce-data}/logs:/data/logs

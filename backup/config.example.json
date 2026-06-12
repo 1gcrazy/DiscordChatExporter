@@ -1,0 +1,29 @@
+{
+  "_comment": "Copy this file to config.json and fill it in. NEVER commit config.json — it holds your token. You can also leave token empty and provide it via the DCE_TOKEN environment variable.",
+
+  "token": "YOUR_DISCORD_TOKEN_HERE",
+
+  "_cliPath_comment": "Path to the DiscordChatExporter CLI. On Windows point this at DiscordChatExporter.Cli.exe (built or downloaded). Ignored inside Docker (the container sets it automatically).",
+  "cliPath": "DiscordChatExporter.Cli.exe",
+
+  "_outputRoot_comment": "Root folder that the server folder tree is written under.",
+  "outputRoot": "./exports",
+
+  "_format_comment": "Json | HtmlDark | HtmlLight | PlainText | Csv. Json is recommended for backups (mergeable + browsable).",
+  "format": "Json",
+
+  "downloadMedia": true,
+  "includeThreads": "all",
+  "includeVoice": true,
+
+  "_guilds_comment": "Server (guild) IDs to back up. Get them with: DiscordChatExporter.Cli guilds -t <token>",
+  "guilds": [
+    "000000000000000000"
+  ],
+
+  "_remote_comment": "Optional: after each run, push the exports to remote/cloud storage via rclone (https://rclone.org). Configure an rclone remote first.",
+  "remote": {
+    "enabled": false,
+    "rcloneRemote": "mybackup:discord-archive"
+  }
+}

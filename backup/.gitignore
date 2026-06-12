@@ -1,0 +1,11 @@
+# Never commit your real config — it contains your Discord token
+config.json
+docker/.env
+
+# Local runtime artifacts
+state/
+logs/
+exports/
+dce-data/
+docker/dce-data/
+*.log

@@ -74,6 +74,15 @@ To learn more about the war and how you can help, [click here](https://tyrrrz.me
 - File partitioning, date ranges, message filtering, and other export options
 - Self-contained exports that can be viewed offline
 
+## Automated server backups (fork addition)
+
+This fork adds a [`backup/`](backup/) module that turns the exporter into an
+**incremental, scheduled, whole-server archiver**: it exports an entire server as a
+`Server/Category/Channel` folder tree and keeps it up to date hourly/daily/weekly/monthly,
+pulling only new messages each run. It runs via **Windows Task Scheduler** or as a
+self-hosted **Docker** container that backs up onto a server (with optional `rclone` push
+to cloud storage). See [backup/README.md](backup/README.md).
+
 ## Screenshots
 
 ![channel list](.assets/list.png)

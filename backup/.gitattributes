@@ -1,0 +1,6 @@
+# These run inside Linux/Alpine (Docker) — force LF so the shebang/line endings
+# don't break when the repo is checked out or built on Windows.
+*.sh        text eol=lf
+entrypoint.sh text eol=lf
+Dockerfile  text eol=lf
+docker-entrypoint.sh text eol=lf
