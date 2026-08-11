@@ -71,6 +71,12 @@ public class SettingsViewModel : DialogViewModelBase
         set => _settingsService.RateLimitPreference = value;
     }
 
+    public int RequestDelayMs
+    {
+        get => _settingsService.RequestDelayMs;
+        set => _settingsService.RequestDelayMs = Math.Clamp(value, 0, 10000);
+    }
+
     public IReadOnlyList<ThreadInclusionMode> AvailableThreadInclusionModes { get; } =
         Enum.GetValues<ThreadInclusionMode>();
 

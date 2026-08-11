@@ -81,6 +81,24 @@
                         </ComboBox>
                     </DockPanel>
 
+                    <!--  Request delay (throttle)  -->
+                    <DockPanel LastChildFill="False" ToolTip.Tip="{Binding LocalizationManager.RequestDelayTooltip}">
+                        <TextBlock DockPanel.Dock="Left" Text="{Binding LocalizationManager.RequestDelayLabel}" />
+                        <StackPanel
+                            DockPanel.Dock="Right"
+                            Orientation="Horizontal"
+                            Spacing="10">
+                            <TextBlock Text="{Binding RequestDelayMs, StringFormat='{}{0} ms'}" />
+                            <Slider
+                                Width="150"
+                                IsSnapToTickEnabled="True"
+                                Maximum="10000"
+                                Minimum="0"
+                                TickFrequency="250"
+                                Value="{Binding RequestDelayMs}" />
+                        </StackPanel>
+                    </DockPanel>
+
                     <!--  Thread inclusion mode  -->
                     <DockPanel LastChildFill="False" ToolTip.Tip="{Binding LocalizationManager.ShowThreadsTooltip}">
                         <TextBlock DockPanel.Dock="Left" Text="{Binding LocalizationManager.ShowThreadsLabel}" />

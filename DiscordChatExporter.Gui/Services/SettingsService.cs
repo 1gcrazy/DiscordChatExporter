@@ -32,6 +32,11 @@ public partial class SettingsService()
     public partial RateLimitPreference RateLimitPreference { get; set; } =
         RateLimitPreference.RespectAll;
 
+    // Minimum delay, in milliseconds, between consecutive requests to Discord.
+    // Higher values download more slowly but reduce the risk of the account being flagged.
+    [ObservableProperty]
+    public partial int RequestDelayMs { get; set; } = 0;
+
     [ObservableProperty]
     public partial ThreadInclusionMode ThreadInclusionMode { get; set; }
 

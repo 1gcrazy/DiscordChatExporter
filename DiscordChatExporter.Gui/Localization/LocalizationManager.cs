@@ -100,6 +100,8 @@ public partial class LocalizationManager
     public string PersistTokenTooltip => Get();
     public string RateLimitPreferenceLabel => Get();
     public string RateLimitPreferenceTooltip => Get();
+    public string RequestDelayLabel => Get();
+    public string RequestDelayTooltip => Get();
     public string ShowThreadsLabel => Get();
     public string ShowThreadsTooltip => Get();
     public string LocaleLabel => Get();

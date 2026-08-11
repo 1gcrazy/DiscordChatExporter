@@ -59,6 +59,9 @@ public partial class LocalizationManager
             [nameof(RateLimitPreferenceLabel)] = "Rate limit preference",
             [nameof(RateLimitPreferenceTooltip)] =
                 "Whether to respect advisory rate limits. If disabled, only hard rate limits (i.e. 429 responses) will be respected.",
+            [nameof(RequestDelayLabel)] = "Request delay",
+            [nameof(RequestDelayTooltip)] =
+                "Minimum delay (in milliseconds) between consecutive requests to Discord. Increase this to download more slowly and reduce the risk of your account being flagged or banned. Set to 0 to disable.",
             [nameof(ShowThreadsLabel)] = "Show threads",
             [nameof(ShowThreadsTooltip)] = "Which types of threads to show in the channel list",
             [nameof(LocaleLabel)] = "Locale",

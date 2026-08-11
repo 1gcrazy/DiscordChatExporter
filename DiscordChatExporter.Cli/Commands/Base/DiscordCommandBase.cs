@@ -34,11 +34,20 @@ public abstract class DiscordCommandBase : ICommand
     )]
     public bool ShouldRespectRateLimits { get; set; } = true;
 
+    [CommandOption(
+        "request-delay",
+        Description = "Minimum delay, in milliseconds, to wait between consecutive requests to Discord. "
+            + "Increase this to download more slowly and reduce the risk of your account being flagged or banned. "
+            + "Set to 0 to disable."
+    )]
+    public double RequestDelayMs { get; set; } = 0;
+
     [field: AllowNull, MaybeNull]
     protected DiscordClient Discord =>
         field ??= new DiscordClient(
             Token,
-            ShouldRespectRateLimits ? RateLimitPreference.RespectAll : RateLimitPreference.IgnoreAll
+            ShouldRespectRateLimits ? RateLimitPreference.RespectAll : RateLimitPreference.IgnoreAll,
+            RequestDelayMs > 0 ? TimeSpan.FromMilliseconds(RequestDelayMs) : null
         );
 
     public virtual ValueTask ExecuteAsync(IConsole console)

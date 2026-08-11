@@ -20,11 +20,43 @@ namespace DiscordChatExporter.Core.Discord;
 
 public class DiscordClient(
     string token,
-    RateLimitPreference rateLimitPreference = RateLimitPreference.RespectAll
+    RateLimitPreference rateLimitPreference = RateLimitPreference.RespectAll,
+    TimeSpan? requestDelay = null
 )
 {
     private readonly Uri _baseUri = new("https://discord.com/api/v10/", UriKind.Absolute);
     private TokenKind? _resolvedTokenKind;
+
+    // Minimum delay to enforce between consecutive outgoing requests. This is a deliberate,
+    // user-configured throttle (separate from Discord's advisory rate limits) that spaces out
+    // requests to make automated exporting look less bursty and reduce the risk of the account
+    // being flagged or banned.
+    // https://github.com/Tyrrrz/DiscordChatExporter/issues/1021
+    private readonly TimeSpan _requestDelay = requestDelay ?? TimeSpan.Zero;
+    private readonly SemaphoreSlim _throttleLock = new(1, 1);
+    private DateTimeOffset _lastRequestTimestamp = DateTimeOffset.MinValue;
+
+    private async ValueTask ThrottleAsync(CancellationToken cancellationToken = default)
+    {
+        if (_requestDelay <= TimeSpan.Zero)
+            return;
+
+        // Serialize so that concurrent requests (e.g. when exporting multiple channels in
+        // parallel) are still spaced out by at least the configured delay.
+        await _throttleLock.WaitAsync(cancellationToken);
+        try
+        {
+            var elapsedSinceLast = DateTimeOffset.Now - _lastRequestTimestamp;
+            var remainingDelay = _requestDelay - elapsedSinceLast;
+            if (remainingDelay > TimeSpan.Zero)
+                await Task.Delay(remainingDelay, cancellationToken);
+        }
+        finally
+        {
+            _lastRequestTimestamp = DateTimeOffset.Now;
+            _throttleLock.Release();
+        }
+    }
 
     private async ValueTask<HttpResponseMessage> GetResponseAsync(
         string url,
@@ -35,6 +67,10 @@ public class DiscordClient(
         return await Http.ResponseResiliencePipeline.ExecuteAsync(
             async innerCancellationToken =>
             {
+                // Space out requests according to the user-configured throttle before sending.
+                // This runs inside the resilience pipeline, so retries are throttled too.
+                await ThrottleAsync(innerCancellationToken);
+
                 using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(_baseUri, url));
 
                 // Don't validate because the token can have special characters
