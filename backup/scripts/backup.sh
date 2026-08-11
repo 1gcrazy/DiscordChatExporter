@@ -38,6 +38,10 @@ FORMAT="$(jq -r '.format // "Json"' "$CONFIG")"
 MEDIA="$(jq -r '.downloadMedia // true' "$CONFIG")"
 THREADS="$(jq -r '.includeThreads // "all"' "$CONFIG")"
 VC="$(jq -r '.includeVoice // true' "$CONFIG")"
+# Throttle: minimum ms between requests, to avoid tripping Discord's ban heuristics.
+# Env var wins over config; 0 (or absent) disables the throttle.
+REQUEST_DELAY="${DCE_REQUEST_DELAY:-$(jq -r '.requestDelayMs // 0' "$CONFIG")}"
+[ "$REQUEST_DELAY" = "null" ] && REQUEST_DELAY=0
 
 mkdir -p "$OUTPUT_ROOT"
 OUTPUT_ROOT="$(cd "$OUTPUT_ROOT" && pwd)"
@@ -73,6 +77,7 @@ for GUILD in "${GUILDS[@]}"; do
   if [ "$MEDIA" = "true" ]; then
     args+=( --media --reuse-media --media-dir "$OUTPUT_ROOT/_media/guild-$GUILD/" )
   fi
+  [ "$REQUEST_DELAY" != "0" ] && args+=( --request-delay "$REQUEST_DELAY" )
   [ -n "$LAST" ] && args+=( --after "$LAST" )
 
   if "$DCE_CLI" "${args[@]}" 2>&1 | tee -a "$LOG"; then

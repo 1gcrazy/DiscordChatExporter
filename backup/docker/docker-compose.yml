@@ -19,6 +19,9 @@ services:
       # Cron schedule (UTC unless you change TZ). See README for hourly/daily/weekly/monthly.
       CRON_SCHEDULE: "${CRON_SCHEDULE:-0 * * * *}"
       RUN_ON_START: "${RUN_ON_START:-true}"
+      # Optional override of config.json's requestDelayMs (throttle between Discord requests).
+      # Leave empty to use the value from config.json.
+      DCE_REQUEST_DELAY: "${DCE_REQUEST_DELAY:-}"
       TZ: "${TZ:-UTC}"
     volumes:
       - ../config.json:/data/config.json:ro

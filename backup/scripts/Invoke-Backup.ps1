@@ -67,6 +67,12 @@ $media   = if ($null -ne $cfg.downloadMedia) { [bool]$cfg.downloadMedia } else {
 $threads = if ($cfg.includeThreads) { $cfg.includeThreads } else { 'all' }
 $vc      = if ($null -ne $cfg.includeVoice) { [bool]$cfg.includeVoice } else { $true }
 
+# Throttle: minimum ms between requests, to avoid tripping Discord's ban heuristics.
+# Env var wins over config; 0 (or absent) disables the throttle.
+$requestDelay = if ($env:DCE_REQUEST_DELAY) { [int]$env:DCE_REQUEST_DELAY }
+                elseif ($null -ne $cfg.requestDelayMs) { [int]$cfg.requestDelayMs }
+                else { 0 }
+
 $ext = switch ($format) {
     'Json'      { 'json' }
     'HtmlDark'  { 'html' }
@@ -106,6 +112,7 @@ foreach ($guild in $cfg.guilds) {
     $outTemplate = Join-Path $outputRoot "%G\%T\%C\%C_$runStamp.$ext"
     $cliArgs = @('exportguild','-t',$token,'-g',$guild,'-f',$format,'-o',$outTemplate,
                  '--include-threads',$threads,'--include-vc',("$vc".ToLower()),'--fuck-russia')
+    if ($requestDelay -gt 0) { $cliArgs += @('--request-delay',"$requestDelay") }
     if ($media) {
         $mediaDir = Join-Path $outputRoot "_media\guild-$guild\"
         $cliArgs += @('--media','--reuse-media','--media-dir',$mediaDir)

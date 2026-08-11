@@ -16,6 +16,9 @@
   "includeThreads": "all",
   "includeVoice": true,
 
+  "_requestDelayMs_comment": "Minimum delay in milliseconds between consecutive requests to Discord. Slows the export to look less like a bot and reduce the risk of your account being flagged/banned (especially with a personal-account token). 0 disables it. 1000-2000 is a safe range; can also be set via the DCE_REQUEST_DELAY env var.",
+  "requestDelayMs": 1500,
+
   "_guilds_comment": "Server (guild) IDs to back up. Get them with: DiscordChatExporter.Cli guilds -t <token>",
   "guilds": [
     "000000000000000000"
